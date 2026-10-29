@@ -45,9 +45,9 @@ public class NewGameCommand extends Command {
         Board newBoard = new Board(difficulty.rows, difficulty.cols, difficulty.mines);
         board.copyStateFrom(newBoard);
 
-        // Start/reset the timer if session is present
+        // A new game always starts timing from zero
         if (session != null) {
-            session.getGameTimer().start();
+            session.getGameTimer().restart();
         }
 
         System.out.println("New " + difficulty.name().toLowerCase() + " game started.");

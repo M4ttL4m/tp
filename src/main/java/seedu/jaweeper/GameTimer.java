@@ -14,9 +14,24 @@ public class GameTimer {
         this.isRunning = false;
     }
 
+    /**
+     * Starts or resumes timing, keeping any time already counted.
+     * Does nothing if the timer is already running, so a running interval is never lost.
+     */
     public void start() {
+        if (isRunning) {
+            return;
+        }
         this.startTime = System.currentTimeMillis();
         this.isRunning = true;
+    }
+
+    /**
+     * Begins timing a brand-new game: clears any earlier time, then starts from zero.
+     */
+    public void restart() {
+        reset();
+        start();
     }
 
     public void stop() {
