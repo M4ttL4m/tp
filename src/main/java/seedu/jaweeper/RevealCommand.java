@@ -127,12 +127,12 @@ public class RevealCommand extends Command {
             board.setGameState(GameState.WON);
 
             if (session != null) {
-                long timeTakenInSeconds = 0;
+                long timeTakenInMillis = 0;
                 if (session.getGameTimer() != null) {
                     session.getGameTimer().stop();
-                    timeTakenInSeconds = session.getGameTimer().getElapsedTimeSeconds();
+                    timeTakenInMillis = session.getGameTimer().getElapsedMillis();
                 }
-                session.getActiveProfile().getStats().recordWin(timeTakenInSeconds);
+                session.getActiveProfile().getStats().recordWin(timeTakenInMillis);
             }
 
             assert board.getGameState() == GameState.WON : "Game should be won after victory";

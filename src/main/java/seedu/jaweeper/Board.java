@@ -45,7 +45,7 @@ public class Board {
         logger.info("New board initialized with " + totalMines + " mines.");
     }
 
-    
+
 
     private Board(int rows, int cols, int totalMines, Cell[][] cells) {
         this.rows = rows;
@@ -65,7 +65,7 @@ public class Board {
         assert countMines() == totalMines : "Restored board must contain exactly " + totalMines + " mines";
     }
 
-    
+
     static Board restore(int rows, int cols, int totalMines, Cell[][] cells) {
         assert cells != null && cells.length == rows : "Row count must match the saved grid";
         assert rows > 0 && cols > 0 && cells[0].length == cols : "Column count must match the saved grid";
@@ -111,11 +111,15 @@ public class Board {
         isFirstMove = false;
 
         int minesBefore = countMines();
+        // Protect the clicked cell and its eight neighbours when the mines still fit outside
+        // that area; on a very dense board protect only the clicked cell, otherwise the
+        // mines could never all be placed and the loop below would never finish.
+        int radius = areaSize(row, col, 1) <= rows * cols - minesBefore ? 1 : 0;
         int minesToMove = 0;
 
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
-                if (isInSafeArea(r, c, row, col) && grid[r][c].isMine) {
+                if (isInSafeArea(r, c, row, col, radius) && grid[r][c].isMine) {
                     grid[r][c].isMine = false;
                     minesToMove++;
                 }
@@ -126,7 +130,7 @@ public class Board {
         while (minesToMove > 0) {
             int r = rand.nextInt(rows);
             int c = rand.nextInt(cols);
-            if (!isInSafeArea(r, c, row, col) && !grid[r][c].isMine) {
+            if (!isInSafeArea(r, c, row, col, radius) && !grid[r][c].isMine) {
                 grid[r][c].isMine = true;
                 minesToMove--;
             }
@@ -135,12 +139,19 @@ public class Board {
         calculateAdjacencies();
 
         assert countMines() == minesBefore : "Moving mines must not change total mine count";
-        assert grid[row][col].adjacentMines == 0 && !grid[row][col].isMine
-                : "First click must be safe and have no adjacent mines";
+        assert !grid[row][col].isMine : "First click must be safe";
+        assert radius == 0 || grid[row][col].adjacentMines == 0
+                : "First click must open a blank area";
     }
 
-    private static boolean isInSafeArea(int r, int c, int clickRow, int clickCol) {
-        return Math.abs(r - clickRow) <= 1 && Math.abs(c - clickCol) <= 1;
+    private static boolean isInSafeArea(int r, int c, int clickRow, int clickCol, int radius) {
+        return Math.abs(r - clickRow) <= radius && Math.abs(c - clickCol) <= radius;
+    }
+
+    private int areaSize(int row, int col, int radius) {
+        int height = Math.min(rows - 1, row + radius) - Math.max(0, row - radius) + 1;
+        int width = Math.min(cols - 1, col + radius) - Math.max(0, col - radius) + 1;
+        return height * width;
     }
 
     private int countMines() {
